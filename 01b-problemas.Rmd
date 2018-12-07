@@ -1,0 +1,62 @@
+---
+title: "Problemas 1"
+author: "George G. Vega Yon"
+date: "December 4, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1.  Date unos minutos para pensar sobre lo que hemos revisado hasta ahora. ¿Qué
+    ejemplos de problemas/análisis de datos que enfrentas a diario podrían
+    beneficiarse de computación en paralelo? Date una vuelta por CRAN y revisa
+    si es que existe algún paquete de R que te puede ayudar con eso.
+
+2.  Los siguientes funciones pueden ser reescritas para ser más eficientes sin
+    necesidad de utilizar computación en paralelo:
+    
+    ```r
+    # Genera 1000 muestras de una distribucion poisson con media 4.
+    funA <- function(n=100) {
+      x <- NULL
+      for (i in 1:1000)
+        x <- cbind(x, rpois(n, 4))
+    }
+    ```
+    
+    ```r
+    # Proceso Generador de Datos
+    x <- matrix(rnorm(1000*10), ncol=10)
+    y <- x %*% runif(10) + rnorm(1000)
+    
+    # Encuentra el estimador de OLS
+    funB <- function() {
+      solve(t(x) %*% x) %*% t(x) %*% y
+    }
+    ```
+    
+    ```r
+    # Proceso Generador de Datos
+    x <- matrix(rnorm(1e4), nrow=10)
+    
+    # Encuentra el maximo de cada columna
+    funC <- function(x) {
+      apply(x, 2, max)
+    }
+    ```
+    
+    Propone una solución y calcula cuando mejora utilizando el paquete
+    [`microbenchmark`](https://cran.r-project.org/package=microbenchmark)
+    para comparar el tiempo de calculo.
+
+
+3.  ¿Dónde esta el caracol? Replica el ejemplo No 1 del paquete
+    [profvis](https://rstudio.github.io/profvis/examples.html#example-1)
+
+
+
+<!-- funC2 <- function(x) { -->
+<!--       x[cbind(max.col(t(x)), 1:ncol(x))] -->
+<!--     } -->

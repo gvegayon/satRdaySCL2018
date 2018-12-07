@@ -1,0 +1,53 @@
+---
+title: "parte1"
+author: "George G. Vega Yon"
+date: "December 6, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ser o no Ser
+
+![Cuando ir por computación en paralelo](fig/when_to_parallel.svg)
+
+## Computacion en paralelo
+
+Taxonomía de Flynn
+
+![Descargado de https://computing.llnl.gov/tutorials/parallel_comp/](fig/flynnsTaxonomy.gif)
+
+## (cont.)
+
+Grafico de computacion en paralelo
+
+## CPU/Core/Threads
+
+Una consideracion importante es saber distinguir de las partes de tu CPU
+
+![Partes de la CPU (Descargado de https://slurm.schedmd.com/mc_support.html)](fig/cpu-slurm.gif)
+
+## cont.
+
+
+
+```{r}
+library(parallel)
+detectCores()
+```
+
+
+## Que problemas se pueden paralelizar?
+
+Desde el punto de vista de SIMD (Instrucción Única, Múltiples Datos)
+
+*   Simulaciones de Monte Carlo
+
+*   Metodos estadisticos, ej **Bootstrap** (resampleo), **cross-validation**
+    (validación cruzada), MCMC, etc.
+
+*   Procesamiento de Datos e.j. 
+
+*   Algunas operaciones matriciales,  (!?)
