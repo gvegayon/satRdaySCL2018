@@ -109,7 +109,9 @@ mi_boot <- function(dat, stat, R, ncpus = 1L) {
 }
 ```
 
-```{r ejemplo2-boot-cont}
+---
+
+```{r ejemplo2-boot-cont, cache = TRUE}
 # Bootstrap the modelo OLS
 mi_stat <- function(d) {
   coef(lm(y ~ x, data=d))
@@ -134,6 +136,8 @@ ans1 <- mi_boot(dat = data.frame(x, y), mi_stat, R = R, ncpus = 2L)
 t(apply(ans1, 2, quantile, c(.025,.975)))
 ans0
 ```
+
+---
 
 ```{r ejemplo2-boot-benchmark, cache = TRUE}
 library(microbenchmark)
