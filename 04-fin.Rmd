@@ -1,0 +1,50 @@
+---
+output:
+  revealjs::revealjs_presentation:
+    self_contained: true
+    transition: fade
+    theme: simple
+    reveal_options:
+      controls: false
+      slideNumber: true
+      margin: 0.05
+      width: 1024
+      height: 780
+    css: "slides.css"
+    slide_level: 2
+editor_options: 
+  chunk_output_type: console
+---
+
+## {style="text-align:center!important;"}
+
+```{r thanks, out.width="300px"}
+knitr::include_graphics("fig/speed.gif")
+```
+
+### Thanks!
+
+<p style="text-align:center!important;">
+`r icon::fa("github")`  [gvegayon](https://github.com/gvegayon/) <br>
+`r icon::fa("twitter")`  [\@gvegayon](https://twitter.com/gvegayon) <br>
+`r icon::fa("home")`  [ggvy.cl](https://ggvy.cl)<br><br>
+<text style="color:gray;font-size:80%">Presentation created with [revealjs](https:cran.r-project.org/package=revealjs)</text>
+</p>
+
+## See also
+
+*   [Package parallel](https://stat.ethz.ch/R-manual/R-devel/library/parallel/doc/parallel.pdf) 
+*   [Using the iterators package](https://cran.r-project.org/web/packages/iterators/vignettes/iterators.pdf)
+*   [Using the foreach package](https://cran.r-project.org/web/packages/foreach/vignettes/foreach.pdf)
+*   [32 OpenMP traps for C++ developers](https://software.intel.com/en-us/articles/32-openmp-traps-for-c-developers)
+*   [The OpenMP API specification for parallel programming](http://www.openmp.org/)
+*   ['openmp' tag in Rcpp gallery](gallery.rcpp.org/tags/openmp/)
+*   [OpenMP tutorials and articles](http://www.openmp.org/resources/tutorials-articles/)
+
+For more, checkout the [CRAN Task View on HPC](https://cran.r-project.org/web/views/HighPerformanceComputing.html){target="_blank"}
+
+## Session info
+
+```{r session, echo=FALSE}
+sessionInfo()
+```
