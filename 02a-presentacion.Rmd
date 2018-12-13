@@ -82,7 +82,141 @@ Otros tipos de cluster utilizando la función `makeCluster` pueden ser creados
 con este paquete utilizandp el paquete [**snow**](https://cran.r-project.org/package=snow)
 (*Simple Network of Workstations*).
 
+## Ejemplo 1: Parallel Pseudo-RNG con `makePSOCKCluster`
+
+
+```{r parallel-ex-psock, echo=TRUE}
+# 1. CREANDO EL CLUSTER
+library(parallel)
+nnodes <- 4L
+cl     <- makePSOCKcluster(nnodes)    
+
+# 2. PREPARANDO LOS DATOS
+clusterSetRNGStream(cl, 123) # Equivalent to `set.seed(123)`
+
+# 3. ENVIANDO LA LLAMADA (BABY)
+ans <- parSapply(cl, 1:nnodes, function(x) runif(1e3))
+(ans0 <- var(ans))
+```
+
+----
+
+Importante: ¡Debemos asegurarnos de que es reproducible!
+
+```{r parallel-ex-psock-cont, echo=TRUE}
+# QUIERO OBTENER LO MISMO! ESTABLECIMOS LA SEMILLA
+clusterSetRNGStream(cl, 123)
+ans1 <- var(parSapply(cl, 1:nnodes, function(x) runif(1e3)))
+
+# 4. PARAMOS EL CLUSTER
+stopCluster(cl)
+
+all.equal(ans0, ans1) # TODO IGUAL!
+```
+
+## Ejemplo 2: Parallel RNG con `makeForkCluster`
+
+En el caso de `makeForkCluster`
+
+```{r parallel-ex-fork, echo=TRUE, eval = TRUE}
+# 1. CREANDO EL CLUSTER
+library(parallel)
+
+# EL FORK COPIARA LO ARCHIVOS CUANDO SE LLAME A LA FUNCION make...
+nsims  <- 1e3
+nnodes <- 4L
+cl     <- makeForkCluster(nnodes)    
+
+# 2. PREPARANDO LOS DATOS
+clusterSetRNGStream(cl, 123)
+
+# 3. ENVIANDO LA LLAMADA (BABY)
+ans <- do.call(cbind, parLapply(cl, 1:nnodes, function(x) {
+  runif(nsims) # ¡Mira! Utilizamos la variable `nsims`. Esta llamada habria 
+               # fallado en makePSOCKCluster de no haber copiado la variable
+               # antes!.
+  }))
+
+(ans0 <- var(ans))
+```
+
+---
+
+Again, we want to make sure this is reproducible
+
+```{r parallel-ex-fork-cont, echo=TRUE}
+# Same sequence with same seed
+clusterSetRNGStream(cl, 123)
+ans1 <- var(do.call(cbind, parLapply(cl, 1:nnodes, function(x) runif(nsims))))
+
+ans0 - ans1 # A matrix of zeros
+
+# 4. STOP THE CLUSTER
+stopCluster(cl)
+```
+
+## {data-background=#515A5A}
+
+
+<text style="color:white;">Well, if you are a MacOS/Linux user, there's a simplier way of doing this...</text>
+
+
+## Ex 3: Parallel RNG with `mclapply` (Forking on the fly)
+
+In the case of `mclapply`, the forking (cluster creation) is done on the fly!
+
+```{r parallel-ex-mclapply, echo=TRUE, eval = TRUE}
+# 1. CREATING A CLUSTER
+library(parallel)
+
+# The fork cluster will copy the -nsims- object
+nsims  <- 1e3
+nnodes <- 4L
+# cl     <- makeForkCluster(nnodes) # mclapply does it on the fly
+
+# 2. PREPARING THE CLUSTER
+set.seed(123) 
+
+# 3. DO YOUR CALL
+ans <- do.call(cbind, mclapply(1:nnodes, function(x) runif(nsims)))
+
+(ans0 <- var(ans))
+```
+
+---
+
+Once more, we want to make sure this is reproducible
+
+```{r parallel-ex-mclapply-cont, echo=TRUE}
+# Same sequence with same seed
+set.seed(123) 
+ans1 <- var(do.call(cbind, mclapply(1:nnodes, function(x) runif(nsims))))
+
+ans0 - ans1 # A matrix of zeros
+
+# 4. STOP THE CLUSTER
+# stopCluster(cl) no need of doing this anymore
+```
+
 ## Ejemplo 1: Estimando $\pi$
+
+*   Sabemos que $A = \pi r^2$, que es lo mismo que $\pi = \frac{A}{r^2}$.
+
+*   Esto nos permite aproximar $\pi$ utilizando simulaciones.
+
+*   En particular, aproximando el área círculo como sigue $\mbox{E}\left(|u|<r\right)$, es decir
+    
+    $$
+    \frac{1}{n}\sum_i^n\mathbf{1}\left(|u|<r\right) \equiv
+    \frac{1}{n}\sum_i^n\mathbf{1}\left(\text{El punto $u$ cae dentro el circulo}\right)
+    $$ 
+    
+```{r circulo, dev='svg', echo=FALSE, fig.width=6, fig.height=6, out.width='300px', out.height='300px', fig.align='center'}
+set.seed(1231)
+p    <- matrix(runif(5e3*2, -1, 1), ncol=2)
+pcol <- ifelse(sqrt(rowSums(p^2)) <= 1, adjustcolor(viridisLite::inferno(5)[4], .5), adjustcolor("gray", .5))
+plot(p, col=pcol, pch=18)
+```
 
 ## Ejemplo 2: Bootstrap
 
