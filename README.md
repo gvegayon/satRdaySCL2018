@@ -19,35 +19,13 @@ máximo provecho a los contenidos.
 
 # Contenidos
 
-## Parte 1: Conceptos fundamentales
+* Parte 1: Conceptos fundamentales ([presentacion](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/01a-intro.html) - [problemas](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/01b-problemas.html))
 
-*   Que es computacion en paralelo
+* Parte 2: Paquete parallel ([presentacion](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/02a-parallel.html) - [problemas](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/02b-problemas.html))
 
-*   Cuando es conveniente: Workflow
+* Parte 3: Intro a Rcpp ([presentacion](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/03a-Rcpp.html) - [problemas](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/03b-problemas.html))
 
-*   Problemas
-
-## Parte 2: Paquete parallel
-
-*   Embarasingly parallel computing y Paralelizacion explicita (PE).
-
-*   Componentes de PE: Cluster, Uso de Memoria, Pseudo-RNG en paralelo, y CPUs
-
-*   Problemas
-
-## Parte 3: Intro a Rcpp
-
-*   Cuando el problema no se puede separar...
-
-*   Fundamentales de Rcpp: Archivo cpp, estructura de la funcion en Rcpp, y
-    fundamentales de C++.
-
-*   Problemas
-
-## Parte 4: Aplicacion
-
-*   Utilizando arboles filogeneticos y anotaciones de humanos para predecir
-    funciones geneticas (trabajo de tesis)
+* Parte 4: Aplicacion ([presentacion](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/04a-tesis.html))
 
 
 # Acerca del Instructor
