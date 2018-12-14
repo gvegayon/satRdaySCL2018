@@ -1,7 +1,7 @@
 ---
 title: "parte1"
 author: "George G. Vega Yon"
-date: "December 6, 2018"
+date: "<br>USC Integrative Methods of Analysis for Genomic Epidemiology (IMAGE)<br>Department of Preventive Medicine<br>July 7th, 2018"
 output: html_document
 ---
 

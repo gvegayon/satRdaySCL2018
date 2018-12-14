@@ -1,0 +1,12 @@
+```{r thanks, out.width="300px"}
+knitr::include_graphics("fig/speed.gif")
+```
+
+### Thanks!
+
+<p style="text-align:center!important;">
+`r icon::fa("github")`  [gvegayon](https://github.com/gvegayon/) <br>
+`r icon::fa("twitter")`  [\@gvegayon](https://twitter.com/gvegayon) <br>
+`r icon::fa("home")`  [ggvy.cl](https://ggvy.cl)<br><br>
+<text style="color:gray;font-size:80%">Presentation created with [revealjs](https:cran.r-project.org/package=revealjs)</text>
+</p>

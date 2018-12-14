@@ -1,7 +1,7 @@
 ---
-title: "Untitled"
+title: "HPC con R<br>Parte 2: Problemas"
 author: "George G. Vega Yon"
-date: "December 12, 2018"
+date: "12 de Diciembre, 2018<br>satRdays SCL"
 output:
   revealjs::revealjs_presentation:
     self_contained: true
@@ -17,6 +17,7 @@ output:
     slide_level: 2
 editor_options: 
   chunk_output_type: console
+bibliography: bibliografia.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -41,6 +42,8 @@ p    <- matrix(runif(5e3*2, -1, 1), ncol=2)
 pcol <- ifelse(sqrt(rowSums(p^2)) <= 1, adjustcolor(viridisLite::inferno(5)[4], .5), adjustcolor("gray", .5))
 plot(p, col=pcol, pch=18)
 ```
+
+---
 
 Utilizando la siguiente función:
 
@@ -67,7 +70,7 @@ de las $k$ repeticiones. Aquella aproximación contará con $n\times k$ muestras
 
 ## Problema 2.2
 
-El método de *Bootstrap* (o [remuestreo](https://es.wikipedia.org/wiki/Bootstrapping_(estad%C3%ADstica){target="_blank"})) puede ser utilizado para aproximar
+El método de *Bootstrap* [@efron1979] (o [remuestreo](https://es.wikipedia.org/wiki/Bootstrapping_(estad%C3%ADstica){target="_blank"})) puede ser utilizado para aproximar
 distribuciones de estadísticos de manera no-paramétrica--que significa sin
 asumir una forma funcional en particular--con el simple supuesto de que la
 muestra observada refleja la distribución de la población.
@@ -94,36 +97,51 @@ mi_boot <- function(dat, stat, R, ncpus = 1L) {
 }
 ```
 
-Siguiendo los comentarios incluidos en el cuerpo de la función, modifica la función
-para que implemente bootstrapping en paralelo. Compara tus resultados utilizando
-1, 2 y (si disponible) 4 procesadores.
-
 ---
 
 ```{r ejemplo2-boot-cont, cache = TRUE}
 # Bootstrap the modelo OLS
-mi_stat <- function(d) {
-  coef(lm(y ~ x, data=d))
-}
+mi_stat <- function(d) coef(lm(y ~ x, data=d))
 
 # Simulando data
 set.seed(1)
-n <- 500
-R <- 1e4
+n <- 500; R <- 1e4
 
-x <- cbind(rnorm(n))
-y <- x*5 + rnorm(n)
+x <- cbind(rnorm(n)); y <- x*5 + rnorm(n)
 
 # Chequeando que obtenemos datos razonables. Boot puede ser comparado con el 
 # intervalo de confianza que obtenemos de la regresion lineal.
 ans0 <- confint(lm(y~x))
-
-# Generando distribucion posterior
 ans1 <- mi_boot(dat = data.frame(x, y), mi_stat, R = R, ncpus = 2L)
 
 # Comparando IC con el bootstrap rustico y el modelo OLS.
 t(apply(ans1, 2, quantile, c(.025,.975)))
 ans0
+```
+
+---
+
+Siguiendo los comentarios incluidos en el cuerpo de la función, modifica la función
+para que implemente bootstrapping en paralelo. Compara tus resultados utilizando
+1, 2 y (si disponible) 4 procesadores.
+
+```r
+mi_boot <- function(dat, stat, R, ncpus = 1L) {
+  
+  # Generando indices aleatorios
+  n <- nrow(dat)
+  idx <- matrix(sample.int(n, n*R, TRUE), nrow=n, ncol=R)
+ 
+  # Creando cluster 
+  # ..... ACA VA EL CODIGO PARA ARMAR EL CLUSTER
+  
+  # Llamando funcion
+  # ...... ESTA FUNCION DEBE SER REEMPLAZADA POR parSapply...
+  t(sapply(seq_len(R), function(i) {
+    stat(dat[idx[,i], , drop=FALSE])
+  }))
+  
+}
 ```
 
 
@@ -160,3 +178,4 @@ microbenchmark(
 ```
 
 
+## Referencias

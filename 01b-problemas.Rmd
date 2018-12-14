@@ -3,6 +3,7 @@ title: "Problemas 1"
 author: "George G. Vega Yon"
 date: "December 4, 2018"
 output: html_document
+bibliography: bibliografia.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -49,14 +50,17 @@ knitr::opts_chunk$set(echo = TRUE)
     
     Propone una solución y calcula cuando mejora utilizando el paquete
     [`microbenchmark`](https://cran.r-project.org/package=microbenchmark)
-    para comparar el tiempo de calculo.
+    [@Mersmann2018] para comparar el tiempo de calculo.
 
 
 3.  ¿Dónde esta el caracol? Replica el ejemplo No 1 del paquete
-    [profvis](https://rstudio.github.io/profvis/examples.html#example-1)
+    [profvis](https://rstudio.github.io/profvis/examples.html#example-1) [@profvis2018]
 
 
 
 <!-- funC2 <- function(x) { -->
 <!--       x[cbind(max.col(t(x)), 1:ncol(x))] -->
 <!--     } -->
+
+## Referencias
+

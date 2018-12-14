@@ -1,0 +1,267 @@
+---
+title: "HPC con R<br>Parte 3: Rcpp"
+author: "George G. Vega Yon"
+date: "12 de Diciembre, 2018<br>satRdays SCL"
+output:
+  revealjs::revealjs_presentation:
+    self_contained: true
+    transition: fade
+    theme: simple
+    reveal_options:
+      controls: false
+      slideNumber: true
+      margin: 0.05
+      width: 1024
+      height: 780
+    css: "slides.css"
+    slide_level: 2
+editor_options: 
+  chunk_output_type: console
+bibliography: bibliografia.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Rcpp
+
+*   El paquete Rcpp [@rcpp2018] es actualmente la manera más popular de extender R.
+
+*   Provee un wrapper de la API de R más fácil de utilizar
+
+*   Lo de "fácil de usar" es en serio.
+
+## Workflow con Rcpp
+
+1.  Crear nuevo archivo `cpp`. RStudio generará el archivo con un ejemplo!
+
+2.  Rcpp tiene 3 funciones (líneas de código) que siempre (o casi siempre) aparecen:
+
+    ```cpp
+    #include<Rcpp.h>
+    using namespace Rcpp;
+    // [[Rcpp::export]]
+    ```
+    
+    (1) Declara los wrappers incluidos con Rcpp, (2) nos ahorra la notación
+    `Rcpp::ALGUNA_FUNCION_O_CLASE`, (3) Le dice a Rcpp que la función debe
+    ser exportada a R, esto es, crear un *wrapper*.
+
+3.  Una vez escrita la función, podemos compilar el código utilizando la función
+    `Rcpp::sourceCpp` o con RStudio de manera directa.
+    
+Revisemos un par de ejemplos
+
+## Ejemplo 1: Calcular la norma
+
+*   La función norma-2 (distancia al origen) está definida como $\|a\| = \sqrt{\sum_k^K a_i^2}$
+
+*   En el caso de una matriz $A$, en R podemos utilizar la siguiente función
+
+    ```{r norma2}
+    mi_norma2 <- function(A) apply(A, 1, function(a) sqrt(sum(a^2)))
+    ```
+    
+*   ¿Cómo hacerlo con Rcpp?
+
+---
+
+La buena noticia, los for loops "no" son tan costosos como en R!
+
+```{Rcpp, norma2_a}
+#include<Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+NumericVector norma2_a(NumericMatrix X) {
+  
+  // Reservando espacio
+  NumericVector ans(X.nrow());
+  
+  // Loop sobre el numero de observaciones de X
+  for (int i = 0; i < X.nrow(); ++i) {
+    
+    // Iniciando el valor de la distancia
+    double d = 0.0;
+    
+    // Loop sobre el numero de variables de X
+    for (int k = 0; k < X.ncol(); ++k)
+      d = d + pow(X(i,k), 2.0);
+    
+    // Finalizando la i-esima obs
+    ans[i] = sqrt(d);
+    
+  }
+  
+  // Devolviendo el vector resultante.
+  return ans;
+}
+```
+
+---
+
+Más aún, podemos implementar utilizando *Rcpp Sugar* (ahorra líneas de código):
+
+```{Rcpp, norma2_b}
+#include<Rcpp.h>
+
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+NumericVector norma2_b(NumericMatrix X) {
+  
+  // Reservando espacio
+  NumericVector ans(X.nrow());
+  
+  // Loop sobre el numero de observaciones de X
+  for (int i = 0; i < X.nrow(); ++i) 
+    ans[i] = (sqrt(sum(pow(X.row(i), 2.0))));
+    
+  
+  // Devolviendo el vector resultante.
+  return ans;
+}
+
+```
+
+---
+
+¿Quién es más rápido?
+
+```{r comparando, cache=TRUE, dependson=c("norma2_a", "norma2_b", "norma2")}
+set.seed(1)
+X <- matrix(runif(500*4), ncol=4)
+microbenchmark::microbenchmark(
+  R      = mi_norma2(X),
+  Rcpp_a = norma2_a(X),
+  Rcpp_b = norma2_b(X), unit = "relative"
+)
+```
+
+
+## Bonus Track: RcppArmadillo y OpenMP
+
+*   Más amigable que [**RcppParallel**](http://rcppcore.github.io/RcppParallel/) [@rcppparallel2018]...
+    o al menos eso creo yo que soy un usuario del tipo \#usoc++perolaverdaesquenosemuchoalrespecto.
+
+*   A utilizar solo con *Thread-safe calls* ("llamar" a R dentro de bloques de 
+    computacion en paralelo casi siempre causa problemas... R no fue hecho para esto!).
+    
+*   Utiliza objectos de clase `arma`, e.j. `arma::mat`, `arma::vec`, etc. O, si
+    estas acostumbrado a usar `std`, `std::vector` es seguro en general.
+
+*   Pseudo-RNG es relativamente fácil (pero no compatible con el motor de R).
+
+*   Es necesario tomar en consideración cómo funcionan los procesadores,
+    memoria cache, etc. de lo contrario puedes meterte en problemas!
+    Si tu código anda más lento con OpenMP, lo más probable es que estes frente
+    a un problema de [*false sharing*](https://software.intel.com/en-us/articles/avoiding-and-identifying-false-sharing-among-threads)
+    
+*   Si R falla (como "fatal error"), intenta correr R con un *debugger* (ver
+    [Section 4.3 in Writing R extensions](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Checking-memory-access)):
+    
+    ```shell
+    ~$ R --debugger=valgrind
+    ```
+
+## Workflow RcppArmadillo y OpenMP 
+
+1.  Agrega las siguientes lineas de código a tu archivo de C++: En esencia es
+    "cargar funciones" y "linkear" compilación a OpenMPÑ
+    
+    ```cpp
+    #include <omp.h>
+    // [[Rcpp::plugins(openmp)]]
+    ```
+
+2.  Indicar que partes del código se debe ejecutar en paralelo utilizando directivas
+    (`pragma`): 
+    
+    
+    ```cpp
+    #pragma omp [directives] [options]
+    {
+      ...Lineas de codigo a utilizar en paralelo...
+    }
+    ```
+    
+    Tienes que decirle a OpenMP como manejar los datos:
+    
+    *   `shared`: Default, all threads access the same copy.
+    *   `private`: Each thread has its own copy (although not initialized).
+    *   `firstprivate` Each thread has its own copy initialized.
+    *   `lastprivate` Each thread has its own copy. The last value is the one stored in the main program.
+    
+    Dejar `default(none)` es una buena práctica.
+    
+3.  ¡Compilar!
+
+## RcppArmadillo + OpenMP ejemplo 1: Distance matrix
+
+```{Rcpp, codigo-rcpp, cache=TRUE}
+#include <omp.h>
+#include <RcppArmadillo.h>
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(openmp)]]
+
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+arma::mat dist_par(arma::mat X, int cores = 1) {
+  // Some constants
+  int N = (int) X.n_rows;
+  int K = (int) X.n_cols;
+  
+  // Output
+  arma::mat D(N,N);
+  D.zeros(); // Filling with zeros
+  
+  // Setting the cores
+  omp_set_num_threads(cores);
+  
+#pragma omp parallel for shared(D, N, K, X) default(none)
+  for (int i=0; i<N; i++)
+    for (int j=0; j<i; j++) {
+      for (int k=0; k<K; k++) 
+        D.at(i,j) += pow(X.at(i,k) - X.at(j,k), 2.0);
+      
+      // Computing square root
+      D.at(i,j) = sqrt(D.at(i,j));
+      D.at(j,i) = D.at(i,j);
+    }
+      
+  
+  // My nice distance matrix
+  return D;
+}
+```
+
+## RcppArmadillo + OpenMP example 1: Distance matrix (cont.)
+
+```{r openmp-example1, cache=TRUE, echo=TRUE, dependson="codigo-rcpp,"}
+# Compiling the function
+# Rcpp::sourceCpp("dist.cpp")
+
+# Simulating data
+set.seed(1231)
+K <- 5000
+n <- 500
+x <- matrix(rnorm(n*K), ncol=K)
+
+# Estamos obteniendo lo mismo?
+table(as.matrix(dist(x)) - dist_par(x, 10)) # Only zeros
+
+# Benchmarking!
+rbenchmark::benchmark(
+  dist(x),                 # stats::dist
+  dist_par(x, cores = 1),  # 1 core
+  dist_par(x, cores = 4),  # 4 cores
+  dist_par(x, cores = 10), # 10 cores
+  replications = 1, order="elapsed"
+)[,1:4]
+```
+
+## Referencias
+
