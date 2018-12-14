@@ -1,0 +1,162 @@
+---
+title: "Untitled"
+author: "George G. Vega Yon"
+date: "December 12, 2018"
+output:
+  revealjs::revealjs_presentation:
+    self_contained: true
+    transition: fade
+    theme: simple
+    reveal_options:
+      controls: false
+      slideNumber: true
+      margin: 0.05
+      width: 1024
+      height: 780
+    css: "slides.css"
+    slide_level: 2
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problema 2.1
+
+**Estimando $\pi$** Sabemos que el área de un círculo puede calcularse como
+$A = \pi r^2$, que es lo mismo que $\pi = \frac{A}{r^2}$. La última ecuación
+nos permite aproximar $\pi$ utilizando simulaciones. En particular, aproximando
+el área círculo como sigue $\mbox{E}\left(|u|<r\right)$, es decir
+
+$$
+\frac{1}{n}\sum_i^n\mathbf{1}\left(|u|<r\right) \equiv
+\frac{1}{n}\sum_i^n\mathbf{1}\left(\text{El punto $u$ cae dentro el circulo}\right)
+$$ 
+
+```{r circulo, dev='svg', echo=FALSE, fig.width=6, fig.height=6, out.width='300px', out.height='300px', fig.align='center'}
+set.seed(1231)
+p    <- matrix(runif(5e3*2, -1, 1), ncol=2)
+pcol <- ifelse(sqrt(rowSums(p^2)) <= 1, adjustcolor(viridisLite::inferno(5)[4], .5), adjustcolor("gray", .5))
+plot(p, col=pcol, pch=18)
+```
+
+Utilizando la siguiente función:
+
+```{r pifun}
+# Simulador de Pi
+pisim <- function(i, nsim) {  # Notar que el argumento `i` no se utiliza en la funcion
+  # Puntos en el cuadrado unitario
+  ans  <- matrix(runif(nsim*2), ncol=2)
+  
+  # Distancia al origen
+  ans  <- sqrt(rowSums(ans^2))
+  
+  # Aproximacion de pi (1 cuarto de circulo)
+  (sum(ans <= 1)*4)/nsim
+}
+```
+
+Genera una aproximación de $\pi$ con la función `parSapply`.
+
+TIP: De hacerlo de forma secuencial, puedes llamar a la funcion pisim $k$ veces
+generando aproximaciones con $n$ repeticiones para luego tomar el promedio simple
+de las $k$ repeticiones. Aquella aproximación contará con $n\times k$ muestras.
+
+
+## Problema 2.2
+
+El método de *Bootstrap* (o [remuestreo](https://es.wikipedia.org/wiki/Bootstrapping_(estad%C3%ADstica){target="_blank"})) puede ser utilizado para aproximar
+distribuciones de estadísticos de manera no-paramétrica--que significa sin
+asumir una forma funcional en particular--con el simple supuesto de que la
+muestra observada refleja la distribución de la población.
+
+La siguiente función implementa bootstrap noparamétrico de manera secuencial (no
+en paralelo)
+
+```{r ejemplo2-unicore-boot}
+mi_boot <- function(dat, stat, R, ncpus = 1L) {
+  
+  # Generando indices aleatorios
+  n <- nrow(dat)
+  idx <- matrix(sample.int(n, n*R, TRUE), nrow=n, ncol=R)
+ 
+  # Creando cluster 
+  # ..... ACA VA EL CODIGO PARA ARMAR EL CLUSTER
+  
+  # Llamando funcion
+  # ...... ESTA FUNCION DEBE SER REEMPLAZADA POR parSapply...
+  t(sapply(seq_len(R), function(i) {
+    stat(dat[idx[,i], , drop=FALSE])
+  }))
+  
+}
+```
+
+Siguiendo los comentarios incluidos en el cuerpo de la función, modifica la función
+para que implemente bootstrapping en paralelo. Compara tus resultados utilizando
+1, 2 y (si disponible) 4 procesadores.
+
+---
+
+```{r ejemplo2-boot-cont, cache = TRUE}
+# Bootstrap the modelo OLS
+mi_stat <- function(d) {
+  coef(lm(y ~ x, data=d))
+}
+
+# Simulando data
+set.seed(1)
+n <- 500
+R <- 1e4
+
+x <- cbind(rnorm(n))
+y <- x*5 + rnorm(n)
+
+# Chequeando que obtenemos datos razonables. Boot puede ser comparado con el 
+# intervalo de confianza que obtenemos de la regresion lineal.
+ans0 <- confint(lm(y~x))
+
+# Generando distribucion posterior
+ans1 <- mi_boot(dat = data.frame(x, y), mi_stat, R = R, ncpus = 2L)
+
+# Comparando IC con el bootstrap rustico y el modelo OLS.
+t(apply(ans1, 2, quantile, c(.025,.975)))
+ans0
+```
+
+
+```{r sol2, echo=FALSE}
+mi_boot <- function(dat, stat, R, ncpus = 1L) {
+  
+  # Generando indices aleatorios
+  n <- nrow(dat)
+  idx <- matrix(sample.int(n, n*R, TRUE), nrow=n, ncol=R)
+ 
+  # Creando cluster 
+  cl <- parallel::makePSOCKcluster(ncpus) # Generando instancias de R
+  parallel::clusterSetRNGStream(cl, 123)  # Semilla
+  on.exit(parallel::stopCluster(cl))      # Detener al salir
+  
+  # En el caso de PSOCK Cluster necesitamos exportar las variables a usar
+  parallel::clusterExport(cl, c("dat", "stat", "idx", "R"), envir = environment())
+  
+  # Llamando funcion
+  t(parallel::parSapply(cl, seq_len(R), function(i) {
+    stat(dat[idx[,i], , drop=FALSE])
+  }))
+  
+}
+```
+
+```{r ejemplo2-boot-benchmark, cache = TRUE, eval=FALSE, echo=FALSE}
+library(microbenchmark)
+microbenchmark(
+  "1 Core" = mi_boot(dat = data.frame(x, y), mi_stat, R = 5000, ncpus = 1L),
+  "2 Core" = mi_boot(dat = data.frame(x, y), mi_stat, R = 5000, ncpus = 2L),
+  times = 1L
+  )
+```
+
+

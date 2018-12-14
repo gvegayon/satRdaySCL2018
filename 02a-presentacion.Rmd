@@ -142,42 +142,38 @@ ans <- do.call(cbind, parLapply(cl, 1:nnodes, function(x) {
 
 ---
 
-Again, we want to make sure this is reproducible
+Nuevamente, nos queremos asegurar de que esto es reproducible
 
 ```{r parallel-ex-fork-cont, echo=TRUE}
-# Same sequence with same seed
+# Misma secuencia con la misma semilla
 clusterSetRNGStream(cl, 123)
 ans1 <- var(do.call(cbind, parLapply(cl, 1:nnodes, function(x) runif(nsims))))
 
-ans0 - ans1 # A matrix of zeros
+all.equal(ans0, ans1) # TODO IGUAL!
 
-# 4. STOP THE CLUSTER
+# 4. PARAMOS EL CLUSTER
 stopCluster(cl)
 ```
 
-## {data-background=#515A5A}
 
+## Ejemplo 3: Parallel Pseudo-RNG con `mclapply` (Forking al paso)
 
-<text style="color:white;">Well, if you are a MacOS/Linux user, there's a simplier way of doing this...</text>
-
-
-## Ex 3: Parallel RNG with `mclapply` (Forking on the fly)
-
-In the case of `mclapply`, the forking (cluster creation) is done on the fly!
+En el caso de la función `mclapply`, el proceso de *forking* y la llamada a la
+función se hace de una sola vez!
 
 ```{r parallel-ex-mclapply, echo=TRUE, eval = TRUE}
-# 1. CREATING A CLUSTER
+# 1. CREANDO EL CLUSTER
 library(parallel)
 
-# The fork cluster will copy the -nsims- object
+
 nsims  <- 1e3
 nnodes <- 4L
-# cl     <- makeForkCluster(nnodes) # mclapply does it on the fly
+# cl     <- makeForkCluster(nnodes) # mclapply hace esto por ti
 
-# 2. PREPARING THE CLUSTER
-set.seed(123) 
+# 2. PREPARANDO LOS DATOS
+set.seed(123) # mclapply por defecto utiliza mc.set.seed = TRUE
 
-# 3. DO YOUR CALL
+# 3. ENVIANDO LA LLAMADA (BABY)
 ans <- do.call(cbind, mclapply(1:nnodes, function(x) runif(nsims)))
 
 (ans0 <- var(ans))
@@ -185,17 +181,16 @@ ans <- do.call(cbind, mclapply(1:nnodes, function(x) runif(nsims)))
 
 ---
 
-Once more, we want to make sure this is reproducible
+Una vez más, debemos aseguranos de que el código es reproducible
 
 ```{r parallel-ex-mclapply-cont, echo=TRUE}
-# Same sequence with same seed
 set.seed(123) 
 ans1 <- var(do.call(cbind, mclapply(1:nnodes, function(x) runif(nsims))))
 
-ans0 - ans1 # A matrix of zeros
+identical(ans0, ans1) # A matrix of zeros
 
-# 4. STOP THE CLUSTER
-# stopCluster(cl) no need of doing this anymore
+# 4. PARAMOS EL CLUSTER
+# stopCluster(cl) no hay necesidad de hacer esto
 ```
 
 ## Ejemplo 1: Estimando $\pi$
