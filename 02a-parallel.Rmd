@@ -1,7 +1,7 @@
 ---
 title: "HPC con R<br>Parte 2: El paquete parallel"
 author: "George G. Vega Yon"
-date: "12 de Diciembre, 2018<br>satRdays SCL"
+date: "<img src=\"fig/satrday.svg\" height=\"200px\"><br>12 de Diciembre, 2018"
 output:
   revealjs::revealjs_presentation:
     self_contained: true
