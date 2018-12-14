@@ -25,7 +25,7 @@ máximo provecho a los contenidos.
 
 * Parte 3: Intro a Rcpp ([presentacion](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/03a-Rcpp.html) - [problemas](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/03b-problemas.html))
 
-* Parte 4: Aplicacion ([presentacion](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/04a-tesis.html))
+* Parte 4: Aplicacion ([presentacion](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gvegayon/satRdaySCL2018/master/04-fin.html))
 
 
 # Acerca del Instructor
