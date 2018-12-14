@@ -2,21 +2,7 @@
 title: "HPC con R<br>Parte 2: Problemas"
 author: "George G. Vega Yon"
 date: "12 de Diciembre, 2018<br>satRdays SCL"
-output:
-  revealjs::revealjs_presentation:
-    self_contained: true
-    transition: fade
-    theme: simple
-    reveal_options:
-      controls: false
-      slideNumber: true
-      margin: 0.05
-      width: 1024
-      height: 780
-    css: "slides.css"
-    slide_level: 2
-editor_options: 
-  chunk_output_type: console
+output: html_document
 bibliography: bibliografia.bib
 ---
 

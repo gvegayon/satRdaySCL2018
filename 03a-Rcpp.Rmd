@@ -144,6 +144,9 @@ microbenchmark::microbenchmark(
 
 *   Más amigable que [**RcppParallel**](http://rcppcore.github.io/RcppParallel/) [@rcppparallel2018]...
     o al menos eso creo yo que soy un usuario del tipo \#usoc++perolaverdaesquenosemuchoalrespecto.
+    
+    Combinar `RcppArmadillo` [@RcppArmadillo] con OpenMP [@openmp] resulta muy
+    conveniente.
 
 *   A utilizar solo con *Thread-safe calls* ("llamar" a R dentro de bloques de 
     computacion en paralelo casi siempre causa problemas... R no fue hecho para esto!).

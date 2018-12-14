@@ -1,0 +1,89 @@
+---
+title: "HPC con R: Parte 1"
+author: "George G. Vega Yon"
+date: "12 de Diciembre, 2018<br>satRdays SCL"
+output:
+  revealjs::revealjs_presentation:
+    self_contained: true
+    transition: fade
+    theme: simple
+    reveal_options:
+      controls: false
+      slideNumber: true
+      margin: 0.05
+      width: 1024
+      height: 780
+    css: "slides.css"
+    slide_level: 2
+editor_options: 
+  chunk_output_type: console
+bibliography: bibliografia.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Acerca de
+
+*   Iquiqueño
+
+*   Papá de 2, esposo de 1
+
+*   Quería ser músico, estudié comercial, salté a economía, y ahora estoy
+    en bioestadística...
+    
+*   Programando en R desde el +-2008
+
+*   Ahora, estudiante de doctorado en bioestadística en USC
+
+## Quienes me financian
+
+Computation for the work described in this paper was supported by the University
+of Southern California’s Center for High-Performance Computing (hpc.usc.edu).
+
+USC Integrative Methods of Analysis for Genomic Epidemiology (IMAGE)
+
+
+
+## Ser o no Ser
+
+![Cuando ir por computación en paralelo](fig/when_to_parallel.svg)
+
+## Computación en paralelo
+
+Taxonomía de Flynn
+
+![Descargado de https://computing.llnl.gov/tutorials/parallel_comp/](fig/flynnsTaxonomy.gif)
+
+## (cont.)
+
+Grafico de computacion en paralelo
+
+## CPU/Core/Threads
+
+Una consideracion importante es saber distinguir de las partes de tu CPU
+
+![Partes de la CPU (Descargado de https://slurm.schedmd.com/mc_support.html)](fig/cpu-slurm.gif)
+
+## cont.
+
+
+```{r}
+library(parallel)
+detectCores()
+```
+
+
+## Que problemas se pueden paralelizar?
+
+Desde el punto de vista de SIMD (Instrucción Única, Múltiples Datos)
+
+*   Simulaciones de Monte Carlo
+
+*   Metodos estadisticos, ej **Bootstrap** (resampleo), **cross-validation**
+    (validación cruzada), MCMC, etc.
+
+*   Procesamiento de Datos e.j. 
+
+*   Algunas operaciones matriciales,  (!?)

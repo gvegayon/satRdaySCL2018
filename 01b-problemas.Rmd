@@ -1,7 +1,7 @@
 ---
-title: "Problemas 1"
+title: "HPC con R<br>Parte 1: Problemas"
 author: "George G. Vega Yon"
-date: "December 4, 2018"
+date: "12 de Diciembre, 2018<br>satRdays SCL"
 output: html_document
 bibliography: bibliografia.bib
 ---
@@ -10,12 +10,16 @@ bibliography: bibliografia.bib
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-1.  Date unos minutos para pensar sobre lo que hemos revisado hasta ahora. ¿Qué
+## 1.1 Reflexión
+
+Date unos minutos para pensar sobre lo que hemos revisado hasta ahora. ¿Qué
     ejemplos de problemas/análisis de datos que enfrentas a diario podrían
     beneficiarse de computación en paralelo? Date una vuelta por CRAN y revisa
     si es que existe algún paquete de R que te puede ayudar con eso.
 
-2.  Los siguientes funciones pueden ser reescritas para ser más eficientes sin
+## 1.2 Antes de saltar...
+
+Los siguientes funciones pueden ser reescritas para ser más eficientes sin
     necesidad de utilizar computación en paralelo:
     
     ```r
@@ -53,7 +57,9 @@ knitr::opts_chunk$set(echo = TRUE)
     [@Mersmann2018] para comparar el tiempo de calculo.
 
 
-3.  ¿Dónde esta el caracol? Replica el ejemplo No 1 del paquete
+## 1.3 ¿Dónde esta el caracol?
+
+Replica el ejemplo No 1 del paquete
     [profvis](https://rstudio.github.io/profvis/examples.html#example-1) [@profvis2018]
 
 

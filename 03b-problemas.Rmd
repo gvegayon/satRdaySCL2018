@@ -1,0 +1,53 @@
+---
+title: "HPC con R<br>Parte 3: Problemas"
+author: "George G. Vega Yon"
+date: "12 de Diciembre, 2018<br>satRdays SCL"
+output: html_document
+bibliography: bibliografia.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 3.1 Serie de Fibonacci
+
+Traduce la siguiente función de R a una en C++ utilizando Rcpp:
+
+```{r}
+fib1 <- function(n, f0 = 0, f1 = 1) {
+  
+  if (n < 0)
+    return(NULL)
+  else {
+    return(c(f0 + f1, fib1(n - 1, f1, f0 + f1)))
+  }
+  
+}
+```
+
+¿Qué tan significativa es la mejora (si alguna)?
+
+
+## 3.2 Simular $\pi$ 2.0
+
+Utilizando RcppArmadillo + OpenMP, escribe un programa para simular pi en paralelo
+
+PISTA: La librería estándard provee de varias maneras de crear funciones generadoras
+de números pseudo aleatorios. Aquí va un ejemplo para genera valores en la uniforme
+(-1,1)
+
+```c++
+// Setting up the RNG
+// - The first line creates an engine that uses the 64-bit Mersenne Twister by
+//   Matsumoto and Nishimura, 2000. One seed per core.
+// - The second line creates a function based on the real uniform between -1
+//   and 1. This receives as argument the engine
+std::mt19937_64 engine((core_num + seed)*10);
+std::uniform_real_distribution<double> my_runif(-1.0, 1.0);
+
+...
+
+// Random number generation (see how we pass the engine)
+  p0 = my_runif(engine);
+```

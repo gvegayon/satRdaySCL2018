@@ -1,0 +1,215 @@
+---
+title: "HPC con R<br>Parte 2: El paquete parallel"
+author: "George G. Vega Yon"
+date: "12 de Diciembre, 2018<br>satRdays SCL"
+output:
+  revealjs::revealjs_presentation:
+    self_contained: true
+    transition: fade
+    theme: simple
+    reveal_options:
+      controls: false
+      slideNumber: true
+      margin: 0.05
+      width: 1024
+      height: 780
+    css: "slides.css"
+    slide_level: 2
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## El paquete parallel
+
+## Flujo de trabajo
+
+Usualmente, es de la siguiente manera:
+
+1.  Crear el cluster de tipo `PSOCK/FORK` (u otro) utilizando la función
+    `makePSOCKCluster`/`makeForkCluster` (o `makeCluster`)
+    
+2.  Preparar la sesion de R en cada processo hijo:
+
+    a.  Copiar objetos con `clusterExport`
+
+    b.  Evaluar expression con `clusterEvalQ`
+
+    c.  Establecer una semilla
+
+3.  Hacer la llamada: `parApply`, `parLapply`, etc. 
+
+4.  Finalizar el cluster con `clusterStop`
+
+
+## Tipos de Clusters: PSOCK
+
+-   Puede ser creado con `makePSOCKCluster`
+
+-   Inicia una sesion de R desde 0 (nada heredado de la sesion madre), e.g.
+    
+    ```r
+    # Esto genera un cluster con 4 hilos
+    cl <- makePSOCKCluster(4)
+    ```
+
+-   Los procesos dependientes se comunican con el proceso madre a través de una
+    conexión de tipo socket.
+
+-   Tiene la ventaja de que puede crear clusters que incorporan otros
+    CPUs, por ejemplo. un cluster con más de un computador!
+
+## Tipos de Clusters: Fork
+
+-   Fork Cluster `makeForkCluster`:
+
+-   Utiliza [*Forking*](https://en.wikipedia.org/wiki/Fork_(system_call)) de
+    procesos en el sistema operativo.
+
+-   Genera una copia de la sesion de R actual de forma tal de que todo lo disponible
+    en la sesion madre al momento de la creación del cluster se encontrará disponible
+    en los procesos hijos..
+    
+-   Los datos son duplicados sólo si son modificados 
+    (need to double check when this happens!)
+
+-   No está disponible para Windows.
+
+Otros tipos de cluster utilizando la función `makeCluster` pueden ser creados
+con este paquete utilizandp el paquete [**snow**](https://cran.r-project.org/package=snow)
+(*Simple Network of Workstations*).
+
+## Ejemplo 1: Parallel Pseudo-RNG con `makePSOCKCluster`
+
+
+```{r parallel-ex-psock, echo=TRUE}
+# 1. CREANDO EL CLUSTER
+library(parallel)
+nnodes <- 4L
+cl     <- makePSOCKcluster(nnodes)    
+
+# 2. PREPARANDO LOS DATOS
+clusterSetRNGStream(cl, 123) # Equivalent to `set.seed(123)`
+
+# 3. ENVIANDO LA LLAMADA (BABY)
+ans <- parSapply(cl, 1:nnodes, function(x) runif(1e3))
+(ans0 <- var(ans))
+```
+
+----
+
+Importante: ¡Debemos asegurarnos de que es reproducible!
+
+```{r parallel-ex-psock-cont, echo=TRUE}
+# QUIERO OBTENER LO MISMO! ESTABLECIMOS LA SEMILLA
+clusterSetRNGStream(cl, 123)
+ans1 <- var(parSapply(cl, 1:nnodes, function(x) runif(1e3)))
+
+# 4. PARAMOS EL CLUSTER
+stopCluster(cl)
+
+all.equal(ans0, ans1) # TODO IGUAL!
+```
+
+## Ejemplo 2: Parallel RNG con `makeForkCluster`
+
+En el caso de `makeForkCluster`
+
+```{r parallel-ex-fork, echo=TRUE, eval = TRUE}
+# 1. CREANDO EL CLUSTER
+library(parallel)
+
+# EL FORK COPIARA LO ARCHIVOS CUANDO SE LLAME A LA FUNCION make...
+nsims  <- 1e3
+nnodes <- 4L
+cl     <- makeForkCluster(nnodes)    
+
+# 2. PREPARANDO LOS DATOS
+clusterSetRNGStream(cl, 123)
+
+# 3. ENVIANDO LA LLAMADA (BABY)
+ans <- do.call(cbind, parLapply(cl, 1:nnodes, function(x) {
+  runif(nsims) # ¡Mira! Utilizamos la variable `nsims`. Esta llamada habria 
+               # fallado en makePSOCKCluster de no haber copiado la variable
+               # antes!.
+  }))
+
+(ans0 <- var(ans))
+```
+
+---
+
+Nuevamente, nos queremos asegurar de que esto es reproducible
+
+```{r parallel-ex-fork-cont, echo=TRUE}
+# Misma secuencia con la misma semilla
+clusterSetRNGStream(cl, 123)
+ans1 <- var(do.call(cbind, parLapply(cl, 1:nnodes, function(x) runif(nsims))))
+
+all.equal(ans0, ans1) # TODO IGUAL!
+
+# 4. PARAMOS EL CLUSTER
+stopCluster(cl)
+```
+
+
+## Ejemplo 3: Parallel Pseudo-RNG con `mclapply` (Forking al paso)
+
+En el caso de la función `mclapply`, el proceso de *forking* y la llamada a la
+función se hace de una sola vez!
+
+```{r parallel-ex-mclapply, echo=TRUE, eval = TRUE}
+# 1. CREANDO EL CLUSTER
+library(parallel)
+
+
+nsims  <- 1e3
+nnodes <- 4L
+# cl     <- makeForkCluster(nnodes) # mclapply hace esto por ti
+
+# 2. PREPARANDO LOS DATOS
+set.seed(123) # mclapply por defecto utiliza mc.set.seed = TRUE
+
+# 3. ENVIANDO LA LLAMADA (BABY)
+ans <- do.call(cbind, mclapply(1:nnodes, function(x) runif(nsims)))
+
+(ans0 <- var(ans))
+```
+
+---
+
+Una vez más, debemos aseguranos de que el código es reproducible
+
+```{r parallel-ex-mclapply-cont, echo=TRUE}
+set.seed(123) 
+ans1 <- var(do.call(cbind, mclapply(1:nnodes, function(x) runif(nsims))))
+
+identical(ans0, ans1) # A matrix of zeros
+
+# 4. PARAMOS EL CLUSTER
+# stopCluster(cl) no hay necesidad de hacer esto
+```
+
+## Ejemplo: Estimando $\pi$
+
+*   Sabemos que $A = \pi r^2$, que es lo mismo que $\pi = \frac{A}{r^2}$.
+
+*   Esto nos permite aproximar $\pi$ utilizando simulaciones.
+
+*   En particular, aproximando el área círculo como sigue $\mbox{E}\left(|u|<r\right)$, es decir
+    
+    $$
+    \frac{1}{n}\sum_i^n\mathbf{1}\left(|u|<r\right) \equiv
+    \frac{1}{n}\sum_i^n\mathbf{1}\left(\text{El punto $u$ cae dentro el circulo}\right)
+    $$ 
+    
+```{r circulo, dev='svg', echo=FALSE, fig.width=6, fig.height=6, out.width='300px', out.height='300px', fig.align='center'}
+set.seed(1231)
+p    <- matrix(runif(5e3*2, -1, 1), ncol=2)
+pcol <- ifelse(sqrt(rowSums(p^2)) <= 1, adjustcolor(viridisLite::inferno(5)[4], .5), adjustcolor("gray", .5))
+plot(p, col=pcol, pch=18)
+```
+
