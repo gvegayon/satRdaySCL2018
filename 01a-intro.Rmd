@@ -56,9 +56,21 @@ Taxonomía de Flynn
 
 ![Descargado de https://computing.llnl.gov/tutorials/parallel_comp/](fig/flynnsTaxonomy.gif)
 
-## (cont.)
+---
 
-Grafico de computacion en paralelo
+### Computacion serial
+
+R no fue pensado para computación en paralelo
+
+![](fig/pll-computing-explained-serial.svg){style="width:700px"}
+
+---
+
+### Computacion en paralelo
+
+Pero existen maneras de contrarrestar esto!
+
+![](fig/pll-computing-explained-parallel.svg){style="width:700px"}
 
 ## CPU/Core/Threads
 
@@ -66,7 +78,7 @@ Una consideracion importante es saber distinguir de las partes de tu CPU
 
 ![Partes de la CPU (Descargado de https://slurm.schedmd.com/mc_support.html)](fig/cpu-slurm.gif)
 
-## cont.
+¿Cuántos procesadores tengo en mi computador? El paquete `parallel` [@R] nos puede decir:
 
 
 ```{r}
@@ -87,3 +99,7 @@ Desde el punto de vista de SIMD (Instrucción Única, Múltiples Datos)
 *   Procesamiento de Datos e.j. 
 
 *   Algunas operaciones matriciales,  (!?)
+
+## Problemas
+
+## Referencias
